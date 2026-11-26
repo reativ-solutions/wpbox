@@ -28,17 +28,24 @@ jobs:
             exit 1
           fi
 
+      - name: Use an npm version with trusted publishing
+        run: npm install -g npm@^11.5.1
+
       - run: npm ci
 
       - run: npm test
 
       - name: Publish to npm
         run: |
+          name=$(node -p "require('./package.json').name")
+          version=$(node -p "require('./package.json').version")
+          if npm view "$name@$version" version >/dev/null 2>&1; then
+            echo "$name@$version is already on npm, skipping publish"
+            exit 0
+          fi
           channel=latest
           case "$GITHUB_REF_NAME" in *-*) channel=next ;; esac
           npm publish --provenance --access public --tag "$channel"
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Create GitHub release
         run: |
