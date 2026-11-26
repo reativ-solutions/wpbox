@@ -1,0 +1,80 @@
+# Local WordPress environment built from a backup (wp-content .zip + .sql dump).
+# Don't start this directly: use ./wpdev.sh (macOS/Linux) or wpdev.cmd (Windows).
+# Values come from .env (written by `wpdev init`); the src/ bind mounts for your
+# own themes/plugins live in compose.override.yaml (also generated).
+
+x-wp-env: &wp-env
+  WORDPRESS_DB_HOST: database:3306
+  WORDPRESS_DB_NAME: ${DB_NAME:-wordpress}
+  WORDPRESS_DB_USER: ${DB_USER:-wordpress}
+  WORDPRESS_DB_PASSWORD: ${DB_PASSWORD:-wordpress}
+  WORDPRESS_TABLE_PREFIX: ${TABLE_PREFIX:-wp_}
+  WORDPRESS_DEBUG: "1"
+  SITE_URL: ${SITE_URL:-http://localhost:8090}
+  LOCAL_PORT: ${WORDPRESS_PORT:-8090}
+  WP_CLI_CACHE_DIR: /tmp/wp-cli-cache
+  WORDPRESS_CONFIG_EXTRA: |
+    define('WP_ENVIRONMENT_TYPE', 'local');
+    define('WP_DEVELOPMENT_MODE', 'all');
+    define('WP_HOME', getenv_docker('SITE_URL', 'http://localhost:8090'));
+    define('WP_SITEURL', getenv_docker('SITE_URL', 'http://localhost:8090'));
+    define('WP_DEBUG_LOG', true);
+    define('WP_DEBUG_DISPLAY', true);
+
+services:
+  wordpress:
+    build:
+      context: ./docker/wordpress
+      args:
+        WORDPRESS_TAG: ${WORDPRESS_TAG:-php8.3-apache}
+    image: wpdev-wordpress:local
+    ports:
+      - "127.0.0.1:${WORDPRESS_PORT:-8090}:80"
+    environment: *wp-env
+    volumes:
+      - wordpress_data:/var/www/html
+      - ./src/uploads:/var/www/html/wp-content/uploads
+      - ./docker/mu-plugins/mailpit.php:/var/www/html/wp-content/mu-plugins/wpdev-mailpit.php:ro
+    depends_on:
+      database:
+        condition: service_healthy
+
+  # Tooling container (only runs via `docker compose run setup ...`).
+  setup:
+    image: wpdev-wordpress:local
+    profiles: ["tools"]
+    entrypoint: ["bash", "/scripts/setup.sh"]
+    environment: *wp-env
+    volumes:
+      - wordpress_data:/var/www/html
+      - ./src/uploads:/var/www/html/wp-content/uploads
+      - ./docker/scripts:/scripts:ro
+      - ./:/project
+
+  mailpit:
+    image: axllent/mailpit:v1.21
+    ports:
+      - "127.0.0.1:${MAILPIT_PORT:-8025}:8025"
+
+  database:
+    image: mariadb:11.4
+    environment:
+      MARIADB_DATABASE: ${DB_NAME:-wordpress}
+      MARIADB_USER: ${DB_USER:-wordpress}
+      MARIADB_PASSWORD: ${DB_PASSWORD:-wordpress}
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root}
+      BACKUP_SQL: ${BACKUP_SQL:-}
+    volumes:
+      - database_data:/var/lib/mysql
+      - ./backup:/backup
+      - ./docker/scripts:/scripts:ro
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+
+volumes:
+  wordpress_data:
+  database_data:
