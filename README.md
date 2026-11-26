@@ -265,6 +265,17 @@ src/
 └── utils/            small shared helpers
 ```
 
+### Releasing
+
+Releases are published to npm by GitHub Actions when a version tag is pushed:
+
+```bash
+npm version minor        # bumps package.json, commits and creates the tag (e.g. v1.1.0)
+git push --follow-tags
+```
+
+The workflow checks that the tag matches `package.json`, runs the tests, publishes to npm with provenance and creates the GitHub release. Pre-release tags such as `v1.1.0-beta.1` are published under the `next` npm tag.
+
 Issues and pull requests are welcome.
 
 ## 📄 License
