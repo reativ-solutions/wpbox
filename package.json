@@ -1,6 +1,6 @@
 {
   "name": "@reativ/wpbox",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Turn any WordPress backup (zip, sql, UpdraftPlus, Duplicator, All-in-One WP Migration, cPanel, FTP/SFTP) into a local Docker dev environment in one command.",
   "keywords": [
     "wordpress",
