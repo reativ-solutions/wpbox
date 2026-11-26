@@ -1,0 +1,64 @@
+{
+  "name": "@reativ/wpbox",
+  "version": "0.1.0",
+  "description": "Turn any WordPress backup (zip, sql, UpdraftPlus, Duplicator, All-in-One WP Migration, cPanel, FTP/SFTP) into a local Docker dev environment in one command.",
+  "keywords": [
+    "wordpress",
+    "docker",
+    "backup",
+    "local-development",
+    "migration",
+    "updraftplus",
+    "duplicator",
+    "all-in-one-wp-migration",
+    "wp-cli",
+    "cli"
+  ],
+  "homepage": "https://github.com/reativ-solutions/wpbox#readme",
+  "bugs": {
+    "url": "https://github.com/reativ-solutions/wpbox/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/reativ-solutions/wpbox.git"
+  },
+  "license": "MIT",
+  "author": "Francisco Costa",
+  "type": "module",
+  "bin": {
+    "wpbox": "bin/wpbox.js"
+  },
+  "files": [
+    "bin",
+    "dist",
+    "templates"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc -p .",
+    "typecheck": "tsc -p . --noEmit",
+    "test": "npm run build && node --test",
+    "prepublishOnly": "npm test"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@clack/prompts": "^1.9.0",
+    "basic-ftp": "^6.2.6",
+    "commander": "^15.1.0",
+    "picocolors": "^1.1.1",
+    "ssh2-sftp-client": "^12.1.1",
+    "tar": "^7.5.23",
+    "yaml": "^2.9.1",
+    "yauzl": "^3.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.43",
+    "@types/ssh2-sftp-client": "^9.0.6",
+    "@types/yauzl": "^3.4.0",
+    "typescript": "^7.0.2"
+  }
+}
